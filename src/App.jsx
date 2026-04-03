@@ -1,4 +1,4 @@
-import HospitalAdmin from "./Admin/HospitalAdmin";
+import { useState } from "react";
 import { Layout, Menu } from "antd";
 import {
   DashboardOutlined,
@@ -6,9 +6,25 @@ import {
   UserOutlined
 } from "@ant-design/icons";
 
+import HospitalAdmin from "./Admin/HospitalAdmin";
+import DoctorAdmin from "./Admin/DoctorAdmin";
+
 const { Header, Sider, Content } = Layout;
 
 const App = () => {
+  const [currentPage, setCurrentPage] = useState("hospital");
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case "doctor":
+        return <DoctorAdmin />;
+      case "dashboard":
+        return <h2>Dashboard (chưa làm)</h2>;
+      default:
+        return <HospitalAdmin />;
+    }
+  };
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       
@@ -21,7 +37,8 @@ const App = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["hospital"]}
+          selectedKeys={[currentPage]}
+          onClick={(e) => setCurrentPage(e.key)} // ⭐ QUAN TRỌNG
           items={[
             {
               key: "dashboard",
@@ -53,12 +70,12 @@ const App = () => {
             fontWeight: "bold"
           }}
         >
-          🏥 Hospital Admin System
+          Hospital Admin System
         </Header>
 
         {/* CONTENT */}
         <Content style={{ margin: "20px" }}>
-          <HospitalAdmin />
+          {renderPage()} {/* ⭐ render theo menu */}
         </Content>
 
       </Layout>

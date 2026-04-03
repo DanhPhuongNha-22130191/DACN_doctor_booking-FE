@@ -11,7 +11,7 @@ import {
   message
 } from "antd";
 
-const API_URL = "http://localhost:8080/api/hospitals";
+// const API_URL = "http://localhost:8080/api/hospitals";
 
 const HospitalAdmin = () => {
   const [hospitals, setHospitals] = useState([]);
@@ -138,7 +138,7 @@ const HospitalAdmin = () => {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>🏥 Quản lý bệnh viện</h2>
+      <h2>Quản lý bệnh viện</h2>
 
       {/* SEARCH */}
       <Space style={{ marginBottom: 16 }}>
