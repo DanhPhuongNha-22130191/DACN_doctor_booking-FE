@@ -12,16 +12,15 @@ import {
   message
 } from "antd";
 
-// const API_DOCTOR = "http://localhost:8080/api/doctors";
-// const API_HOSPITAL = "http://localhost:8080/api/hospitals";
-// const API_DEPARTMENT = "http://localhost:8080/api/departments";
+const API_DOCTOR = "http://localhost:8080/api/doctors";
+const API_HOSPITAL = "http://localhost:8080/api/hospitals";
+const API_DEPARTMENT = "http://localhost:8080/api/departments";
 
 const DoctorAdmin = () => {
   const [doctors, setDoctors] = useState([]);
   const [hospitals, setHospitals] = useState([]);
   const [departments, setDepartments] = useState([]);
-
-  const [search, setSearch] = useState("");
+const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [openForm, setOpenForm] = useState(false);
@@ -36,31 +35,57 @@ const DoctorAdmin = () => {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_DOCTOR, {
-        params: { keyword: search }
-      });
+      const res = await axios.get(API_DOCTOR);
       setDoctors(res.data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi tải bác sĩ");
     }
     setLoading(false);
   };
+  //
+  const handleSearch = async (value) => {
+  try {
+    setLoading(true);
+
+    // Nếu không nhập → load lại toàn bộ
+    if (!value) {
+      fetchDoctors();
+      return;
+    }
+
+    const res = await axios.get(`${API_DOCTOR}/search`, {
+      params: { keyword: value }
+    });
+
+    setDoctors(res.data);
+  } catch (err) {
+    console.error(err);
+    message.error("Lỗi tìm kiếm");
+  }
+  setLoading(false);
+};
 
   const fetchHospitals = async () => {
-    const res = await axios.get(API_HOSPITAL);
-    setHospitals(res.data);
+    try {
+      const res = await axios.get(API_HOSPITAL);
+      setHospitals(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const fetchDepartments = async () => {
-    const res = await axios.get(API_DEPARTMENT);
-    setDepartments(res.data);
+    try {
+      const res = await axios.get(API_DEPARTMENT);
+      setDepartments(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
     fetchDoctors();
-  }, [search]);
-
-  useEffect(() => {
     fetchHospitals();
     fetchDepartments();
   }, []);
@@ -70,11 +95,20 @@ const DoctorAdmin = () => {
     try {
       const values = await form.validateFields();
 
+      const payload = {
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        status: values.status,
+        hospital: { id: values.hospital_id },
+        department: { id: values.department_id }
+      };
+
       if (editingDoctor) {
-        await axios.put(`${API_DOCTOR}/${editingDoctor.id}`, values);
+        await axios.put(`${API_DOCTOR}/${editingDoctor.id}`, payload);
         message.success("Cập nhật thành công");
       } else {
-        await axios.post(API_DOCTOR, values);
+        await axios.post(API_DOCTOR, payload);
         message.success("Thêm thành công");
       }
 
@@ -82,7 +116,8 @@ const DoctorAdmin = () => {
       setEditingDoctor(null);
       form.resetFields();
       fetchDoctors();
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi xử lý");
     }
   };
@@ -93,7 +128,8 @@ const DoctorAdmin = () => {
       await axios.delete(`${API_DOCTOR}/${id}`);
       message.success("Xóa thành công");
       fetchDoctors();
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Xóa thất bại");
     }
   };
@@ -101,40 +137,31 @@ const DoctorAdmin = () => {
   // ================= EDIT =================
   const openEdit = (record) => {
     setEditingDoctor(record);
-    form.setFieldsValue(record);
+
+    form.setFieldsValue({
+      ...record,
+      hospital_id: record.hospital?.id,
+      department_id: record.department?.id
+    });
+
     setOpenForm(true);
   };
 
   // ================= TABLE =================
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "id"
-    },
-    {
-      title: "Tên bác sĩ",
-      dataIndex: "name"
-    },
-    {
-      title: "SĐT",
-      dataIndex: "phone"
-    },
-    {
-      title: "Email",
-      dataIndex: "email"
-    },
+    { title: "ID", dataIndex: "id" },
+    { title: "Tên bác sĩ", dataIndex: "name" },
+    { title: "SĐT", dataIndex: "phone" },
+    { title: "Email", dataIndex: "email" },
     {
       title: "Bệnh viện",
-      dataIndex: ["hospital", "name"] // backend nên trả object hospital
+      render: (_, record) => record.hospital?.name
     },
     {
       title: "Khoa",
-      dataIndex: ["department", "name"]
+      render: (_, record) => record.department?.name
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status"
-    },
+    { title: "Trạng thái", dataIndex: "status" },
     {
       title: "Hành động",
       render: (_, record) => (
@@ -165,28 +192,28 @@ const DoctorAdmin = () => {
     <div style={{ padding: 20 }}>
       <h2>Quản lý bác sĩ</h2>
 
-      {/* SEARCH */}
-      <Space style={{ marginBottom: 16 }}>
-        <Input
-          placeholder="Tìm bác sĩ..."
-          allowClear
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 250 }}
-        />
+<Space style={{ marginBottom: 16 }}>
+  <Input.Search
+    placeholder="Tìm bác sĩ..."
+    allowClear
+    enterButton="Tìm"
+    onSearch={handleSearch} // bấm Enter
+    onChange={(e) => setKeyword(e.target.value)}
+    style={{ width: 300 }}
+  />
 
-        <Button
-          type="primary"
-          onClick={() => {
-            setEditingDoctor(null);
-            form.resetFields();
-            setOpenForm(true);
-          }}
-        >
-          + Thêm bác sĩ
-        </Button>
-      </Space>
+  <Button
+    type="primary"
+    onClick={() => {
+      setEditingDoctor(null);
+      form.resetFields();
+      setOpenForm(true);
+    }}
+  >
+    + Thêm bác sĩ
+  </Button>
+</Space>
 
-      {/* TABLE */}
       <Table
         columns={columns}
         dataSource={doctors}
@@ -200,13 +227,10 @@ const DoctorAdmin = () => {
         open={openForm}
         onCancel={() => setOpenForm(false)}
         onOk={handleSubmit}
+        destroyOnClose
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Tên bác sĩ"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="name" label="Tên bác sĩ" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
 

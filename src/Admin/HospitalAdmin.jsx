@@ -11,7 +11,7 @@ import {
   message
 } from "antd";
 
-// const API_URL = "http://localhost:8080/api/hospitals";
+const API_URL = "http://localhost:8080/api/hospitals";
 
 const HospitalAdmin = () => {
   const [hospitals, setHospitals] = useState([]);
@@ -30,18 +30,27 @@ const HospitalAdmin = () => {
   const fetchHospitals = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_URL, {
-        params: { keyword: search }
-      });
+      const res = search
+        ? await axios.get(`${API_URL}/search`, {
+            params: { keyword: search }
+          })
+        : await axios.get(API_URL);
+
       setHospitals(res.data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi tải dữ liệu");
     }
     setLoading(false);
   };
 
+  // debounce search (tránh spam API)
   useEffect(() => {
-    fetchHospitals();
+    const delay = setTimeout(() => {
+      fetchHospitals();
+    }, 400);
+
+    return () => clearTimeout(delay);
   }, [search]);
 
   // ================= SUBMIT =================
@@ -50,7 +59,7 @@ const HospitalAdmin = () => {
       const values = await form.validateFields();
 
       if (editingHospital) {
-        await axios.put(`${API_URL}/${editingHospital.id}`, values);
+        await axios.put(`${API_URL}/admin/${editingHospital.id}`, values);
         message.success("Cập nhật thành công");
       } else {
         await axios.post(API_URL, values);
@@ -61,7 +70,8 @@ const HospitalAdmin = () => {
       setEditingHospital(null);
       form.resetFields();
       fetchHospitals();
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi xử lý");
     }
   };
@@ -72,7 +82,8 @@ const HospitalAdmin = () => {
       await axios.delete(`${API_URL}/${id}`);
       message.success("Xóa thành công");
       fetchHospitals();
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Xóa thất bại");
     }
   };
@@ -175,6 +186,7 @@ const HospitalAdmin = () => {
         open={openForm}
         onCancel={() => setOpenForm(false)}
         onOk={handleSubmit}
+        destroyOnClose
       >
         <Form form={form} layout="vertical">
           <Form.Item

@@ -38,7 +38,7 @@ const App = () => {
           theme="dark"
           mode="inline"
           selectedKeys={[currentPage]}
-          onClick={(e) => setCurrentPage(e.key)} // ⭐ QUAN TRỌNG
+          onClick={(e) => setCurrentPage(e.key)} //
           items={[
             {
               key: "dashboard",
