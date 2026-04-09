@@ -1,7 +1,6 @@
 // App.js
 import { Routes, Route } from "react-router-dom"; // Chỉ import Routes, Route, không import BrowserRouter nữa
 import Home from "./pages/Home/Home";
-import DoctorDetail from "./pages/Doctor/DoctorDetail";
 import Doctor from "./pages/Doctor/DoctorsPage";
 import Booking from "./pages/Booking/Booking";
 import Login from "./pages/Login/Login";

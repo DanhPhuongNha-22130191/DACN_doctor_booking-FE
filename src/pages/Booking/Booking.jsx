@@ -10,6 +10,15 @@ const API_BASE_URL = "http://localhost:8080/api";
 export default function BookingPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const getCurrentUser = () => {
+  const localUser = localStorage.getItem("user");
+  const sessionUser = sessionStorage.getItem("user");
+
+  const userData = localUser || sessionUser;
+  return userData ? JSON.parse(userData) : null;
+};
+
+const currentUser = getCurrentUser();
 
   // DỮ LIỆU MẪU ĐỂ TEST - Nếu không có doctor từ trang trước thì dùng dữ liệu mẫu
   const mockDoctor = {
@@ -46,6 +55,21 @@ export default function BookingPage() {
     bookingType: "offline",
     agreeTerms: false,
   });
+  useEffect(() => {
+  if (currentUser) {
+    setFormData(prev => ({
+      ...prev,
+      patientName: currentUser.fullName || "",
+      patientEmail: currentUser.email || "",
+      patientPhone: currentUser.phone || "",
+      patientAddress: currentUser.address || "",
+      patientGender: currentUser.gender || "",
+      patientBirthday: currentUser.birthday 
+        ? currentUser.birthday.split("T")[0] 
+        : ""
+    }));
+  }
+}, []);
 
   const [availableDates, setAvailableDates] = useState([]);
   const [availableTimes, setAvailableTimes] = useState([]);

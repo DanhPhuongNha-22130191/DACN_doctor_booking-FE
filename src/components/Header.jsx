@@ -1,8 +1,8 @@
 import { Layout, Menu, Button, Badge, Avatar, Dropdown, Space } from "antd";
-import { 
-  UserOutlined, 
-  CalendarOutlined, 
-  MessageOutlined, 
+import {
+  UserOutlined,
+  CalendarOutlined,
+  MessageOutlined,
   MedicineBoxOutlined,
   RobotOutlined,
   LoginOutlined,
@@ -23,7 +23,11 @@ const AppHeader = () => {
   // Kiểm tra user đã đăng nhập chưa
   useEffect(() => {
     const checkLoginStatus = () => {
-      const userData = localStorage.getItem("user");
+      const localUser = localStorage.getItem("user");
+      const sessionUser = sessionStorage.getItem("user");
+
+      const userData = localUser || sessionUser;
+
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
@@ -38,8 +42,8 @@ const AppHeader = () => {
     };
 
     checkLoginStatus();
-    // Lắng nghe sự thay đổi của localStorage (khi đăng nhập/đăng xuất)
     window.addEventListener("storage", checkLoginStatus);
+
     return () => window.removeEventListener("storage", checkLoginStatus);
   }, []);
 
@@ -111,6 +115,7 @@ const AppHeader = () => {
         icon: <LogoutOutlined />,
         onClick: () => {
           localStorage.removeItem("user");
+          sessionStorage.removeItem("user");
           setUser(null);
           navigate("/");
           window.location.reload(); // Reload để cập nhật UI
