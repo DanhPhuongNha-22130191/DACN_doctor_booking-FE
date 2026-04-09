@@ -101,28 +101,54 @@ const currentUser = getCurrentUser();
 
   // Hàm gọi API lấy danh sách khung giờ khả dụng
   const fetchAvailableTimeSlots = async () => {
-    setLoadingSlots(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/bookings/slots`, {
-        params: {
-          doctorId: doctor.id,
-          date: formData.bookingDate
-        }
-      });
+  setLoadingSlots(true);
+  try {
+    const response = await axios.get(`${API_BASE_URL}/bookings/all-slots`, {
+      params: {
+        doctorId: doctor.id,
+        date: formData.bookingDate,
+      },
+    });
 
-      // Chuyển đổi dữ liệu từ API sang format UI
-      const slots = response.data.map(slot => ({
-        time: slot.startTime.substring(0, 5), // Lấy HH:MM
-        available: slot.status === "available" && slot.isAvailable === true,
+    console.log("API trả về khung giờ:", response.data);
+
+    const today = new Date();
+    const selectedDate = new Date(formData.bookingDate);
+
+    // Chuẩn hóa ngày (loại bỏ phần thời gian)
+    const todayOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const selectedDateOnly = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
+
+    // Nếu người dùng chọn ngày trong quá khứ thì không hiển thị slot
+    if (selectedDateOnly < todayOnly) {
+      setAvailableTimes([]);
+      return;
+    }
+
+    // Map dữ liệu từ API sang format hiển thị
+    const slots = response.data
+      .map((slot) => ({
+        time: slot.startTime.substring(0, 5), // HH:mm
+        available: slot.status === "available",
+        isBooked: slot.status !== "available",
         slotId: slot.id,
         startTime: slot.startTime,
-        endTime: slot.endTime
-      }));
+        endTime: slot.endTime,
+      }))
+      // Sắp xếp theo thời gian tăng dần
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
       setAvailableTimes(slots);
     } catch (error) {
       console.error("Lỗi khi lấy khung giờ:", error);
-      // Nếu API lỗi, hiển thị thông báo
       setAvailableTimes([]);
     } finally {
       setLoadingSlots(false);
@@ -471,23 +497,32 @@ const currentUser = getCurrentUser();
                         <div style={{ textAlign: "center", padding: "20px" }}>Đang tải khung giờ...</div>
                       ) : (
                         <div style={styles.timeGrid}>
-                          {availableTimes.map((time) => (
-                            <button
-                              key={time.time}
-                              type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, bookingTime: time.time }))}
-                              style={{
-                                ...styles.timeButton,
-                                ...(formData.bookingTime === time.time && styles.timeButtonActive),
-                                ...(!time.available && styles.timeButtonDisabled),
-                              }}
-                              disabled={!time.available}
-                            >
-                              {time.time}
-                              {!time.available && <span style={styles.bookedBadge}>Hết</span>}
-                            </button>
-                          ))}
-                        </div>
+                            {availableTimes.map((time) => (
+                              <button
+                                key={time.slotId}
+                                type="button"
+                                onClick={() =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    bookingTime: time.time,
+                                  }))
+                                }
+                                style={{
+                                  ...styles.timeButton,
+                                  ...(formData.bookingTime === time.time &&
+                                    time.available &&
+                                    styles.timeButtonActive),
+                                  ...(!time.available && styles.timeButtonDisabled),
+                                }}
+                                disabled={!time.available}
+                              >
+                                {time.time}
+                                {!time.available && (
+                                  <span style={styles.bookedBadge}>Đã được đặt</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
                       )}
                       {errors.bookingTime && <span style={styles.errorText}>{errors.bookingTime}</span>}
                     </div>
