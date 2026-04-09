@@ -11,23 +11,37 @@ export default function HospitalList() {
   const [hoveredCard, setHoveredCard] = useState(null);
 
   // API base URL (thay đổi theo backend của bạn)
-  const API_BASE_URL = "http://localhost:5000/api";
+  const API_BASE_URL = "http://localhost:8080/api";
 
   useEffect(() => {
     fetchHospitals();
   }, []);
 
+  const handleViewDoctors = (hospital) => {
+    // Chuyển sang trang danh sách bác sĩ
+    navigate("/doctors", {
+      state: {
+        selectedHospital: {
+          id: hospital.id,
+          name: hospital.name,
+          address: hospital.address,
+          phone: hospital.phone,
+          email: hospital.email
+        }
+      }
+    });
+  };
   const fetchHospitals = async () => {
     try {
       setLoading(true);
       // Gọi API lấy danh sách bệnh viện
-      const response = await axios.get(`${API_BASE_URL}/hospitals`);
+      const response = await axios.get(`${API_BASE_URL}/hospitals/active`);
       setHospitals(response.data);
       setError(null);
     } catch (err) {
       console.error("Lỗi khi tải danh sách bệnh viện:", err);
       setError("Không thể tải danh sách bệnh viện. Vui lòng thử lại sau.");
-      
+
       // Nếu có lỗi, dùng dữ liệu mẫu để test
       const mockData = [
         {
@@ -93,8 +107,8 @@ export default function HospitalList() {
 
   const handleBooking = (hospital) => {
     // Chuyển sang trang đặt lịch với thông tin bệnh viện
-    navigate("/booking", { 
-      state: { 
+    navigate("/booking", {
+      state: {
         hospital: {
           id: hospital.id,
           name: hospital.name,
@@ -102,7 +116,7 @@ export default function HospitalList() {
           phone: hospital.phone,
           email: hospital.email
         }
-      } 
+      }
     });
   };
 
@@ -159,7 +173,6 @@ export default function HospitalList() {
             <div style={styles.cardHeader}>
               <div style={styles.hospitalIcon}>🏥</div>
               <h2 style={styles.name}>{hospital.name}</h2>
-              <div style={styles.idBadge}>ID: {hospital.id}</div>
             </div>
 
             <div style={styles.cardContent}>
@@ -167,7 +180,7 @@ export default function HospitalList() {
                 <span style={styles.infoIcon}>📍</span>
                 <span style={styles.infoText}>{hospital.address}</span>
               </div>
-              
+
               <div style={styles.infoRow}>
                 <span style={styles.infoIcon}>📞</span>
                 <span style={styles.infoText}>
@@ -176,7 +189,7 @@ export default function HospitalList() {
                   </a>
                 </span>
               </div>
-              
+
               <div style={styles.infoRow}>
                 <span style={styles.infoIcon}>📧</span>
                 <span style={styles.infoText}>
@@ -188,19 +201,11 @@ export default function HospitalList() {
 
               <div style={styles.divider} />
 
-              <div style={styles.timeInfo}>
-                <div style={styles.timeRow}>
-                  <span>📅 Ngày tạo:</span>
-                  <span>{formatDate(hospital.created_at)}</span>
-                </div>
-                <div style={styles.timeRow}>
-                  <span>🔄 Cập nhật:</span>
-                  <span>{formatDate(hospital.updated_at)}</span>
-                </div>
-              </div>
+
+
 
               <button
-                onClick={() => handleBooking(hospital)}
+                onClick={() => handleViewDoctors(hospital)}
                 style={styles.bookingButton}
                 onMouseEnter={(e) => {
                   e.target.style.transform = "scale(1.02)";
@@ -209,8 +214,8 @@ export default function HospitalList() {
                   e.target.style.transform = "scale(1)";
                 }}
               >
-                <span>📅</span>
-                Đặt lịch ngay
+                <span>👨‍⚕️</span>
+                Xem bác sĩ
                 <span style={styles.arrow}>→</span>
               </button>
             </div>
