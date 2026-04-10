@@ -142,7 +142,7 @@ const LoginPage = ({ onLogin, goRegister }) => {
                   <FaEnvelope className="icon" />
                   <input
                     type="text"
-                    placeholder="Nhập username hoặc email"
+                    placeholder="Nhập username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
