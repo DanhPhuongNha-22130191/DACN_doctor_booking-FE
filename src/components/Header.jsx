@@ -173,7 +173,7 @@ const AppHeader = () => {
               backgroundClip: "text",
             }}
           >
-            You
+            NL
           </div>
           <div
             style={{
@@ -185,7 +185,7 @@ const AppHeader = () => {
               backgroundClip: "text",
             }}
           >
-            Med
+            Medi
           </div>
         </div>
 
