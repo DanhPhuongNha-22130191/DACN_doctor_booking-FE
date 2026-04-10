@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import AppHeader from "../../components/Header";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function DoctorsPage() {
     const navigate = useNavigate();
@@ -78,23 +80,42 @@ export default function DoctorsPage() {
         return matchStatus && matchDepartment && matchSearch;
     });
 
-// DoctorsPage.jsx - Sửa hàm handleBooking
-const handleBooking = (doctor) => {
-    console.log("Chuyển sang booking với bác sĩ:", doctor);
-    navigate("/booking", {
-        state: {
-            doctor: {
-                id: doctor.id,
-                name: doctor.name,
-                phone: doctor.phone,
-                email: doctor.email,
-                hospital: selectedHospital?.name || doctor.hospitalName,
-                department: doctor.departmentName,
-            },
-            hospital: selectedHospital
+    // DoctorsPage.jsx - Sửa hàm handleBooking
+    const handleBooking = (doctor) => {
+        // Kiểm tra token hoặc thông tin người dùng
+        const token = localStorage.getItem("accessToken");
+        const user = localStorage.getItem("user");
+
+        if (!token || !user) {
+            // Hiển thị thông báo
+            alert("Vui lòng đăng nhập để đặt lịch khám!");
+
+            // Chuyển hướng đến trang đăng nhập và lưu lại trang hiện tại
+            navigate("/login", {
+                state: {
+                    from: location.pathname,
+                    doctor,
+                    hospital: selectedHospital
+                }
+            });
+            return;
         }
-    });
-};
+
+        // Nếu đã đăng nhập, chuyển sang trang booking
+        navigate("/booking", {
+            state: {
+                doctor: {
+                    id: doctor.id,
+                    name: doctor.name,
+                    phone: doctor.phone,
+                    email: doctor.email,
+                    hospital: selectedHospital?.name || doctor.hospitalName,
+                    department: doctor.departmentName,
+                },
+                hospital: selectedHospital
+            }
+        });
+    };
 
     if (loading) {
         return (
@@ -179,35 +200,6 @@ const handleBooking = (doctor) => {
                             onChange={(e) => setSearch(e.target.value)}
                             style={styles.searchInput}
                         />
-                    </div>
-
-                    <div style={styles.filterGroup}>
-                        <select
-                            value={selectedDepartment}
-                            onChange={(e) => setSelectedDepartment(e.target.value)}
-                            style={styles.select}
-                        >
-                            <option value="all">Tất cả khoa</option>
-                            {departments.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
-                            ))}
-                        </select>
-
-                        <div style={styles.statusFilter}>
-                            {["all", "active", "inactive"].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => setFilterStatus(status)}
-                                    style={{
-                                        ...styles.statusBtn,
-                                        background: filterStatus === status ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" : "#f0f2f5",
-                                        color: filterStatus === status ? "#fff" : "#666",
-                                    }}
-                                >
-                                    {status === "all" ? "Tất cả" : status === "active" ? "Đang hoạt động" : "Tạm ngưng"}
-                                </button>
-                            ))}
-                        </div>
                     </div>
                 </div>
 

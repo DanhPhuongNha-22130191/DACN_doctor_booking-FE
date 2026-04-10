@@ -25,74 +25,89 @@ const LoginPage = ({ onLogin, goRegister }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!email || !password) {
-      toast.warning("Vui lòng nhập đầy đủ thông tin!");
+  if (!email || !password) {
+    toast.warning("Vui lòng nhập đầy đủ thông tin!");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: email,
+        password: password
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      toast.error(data.error || "Sai tài khoản hoặc mật khẩu!");
       return;
     }
 
-    try {
-      setLoading(true);
+    // 🔹 Lấy role từ response
+    const userRole = data.role || data.user?.role;
 
-      const res = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: email,
-          password: password
-        })
-      });
+    // 🔹 Chuẩn hóa dữ liệu người dùng
+    const userData = {
+      ...data,
+      username: data.username || email,
+      email: data.email || email,
+      role: userRole
+    };
 
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        toast.error(data.error || "Sai tài khoản hoặc mật khẩu!");
-        return;
+    // 🔹 Lưu thông tin user và token
+    if (rememberMe) {
+      localStorage.setItem("user", JSON.stringify(userData));
+      if (data.token) {
+        localStorage.setItem("accessToken", data.token);
       }
-
-      // Kiểm tra role
-      const userRole = data.role || data.user?.role;
-
-      if (userRole !== 'PATIENT') {
-        toast.error("Tài khoản này không phải là bệnh nhân! Vui lòng đăng nhập bằng tài khoản bệnh nhân.");
-        return;
+    } else {
+      sessionStorage.setItem("user", JSON.stringify(userData));
+      if (data.token) {
+        sessionStorage.setItem("accessToken", data.token);
       }
+    }
 
-      toast.success("Đăng nhập thành công");
+    // 🔹 Gọi callback onLogin nếu có
+    if (onLogin) {
+      onLogin();
+    }
 
-      // Lưu thông tin user
-      const userData = {
-        ...data,
-        username: data.username || email,
-        email: data.email || email
-      };
+    // 🔹 Điều hướng theo role
+    if (userRole === "ADMIN") {
+      toast.success("Đăng nhập quản trị thành công!");
+      setTimeout(() => {
+        navigate("/doctor-admin"); // Đường dẫn tới trang HospitalAdmin
+      }, 1000);
+      return;
+    }
 
-      if (rememberMe) {
-        localStorage.setItem("user", JSON.stringify(userData));
-      } else {
-        sessionStorage.setItem("user", JSON.stringify(userData));
-      }
-
-      // Gọi callback onLogin nếu có
-      if (onLogin) {
-        onLogin();
-      }
-
-      // Chuyển hướng về home sau 1 giây
+    if (userRole === "PATIENT") {
+      toast.success("Đăng nhập thành công!");
       setTimeout(() => {
         navigate("/");
-        window.location.reload(); // Reload để cập nhật header
+        window.location.reload(); // Cập nhật header
       }, 1000);
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Lỗi kết nối server!");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    // 🔹 Trường hợp role không hợp lệ
+    toast.error("Vai trò người dùng không hợp lệ!");
+  } catch (err) {
+    console.error(err);
+    toast.error("Lỗi kết nối server!");
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (
