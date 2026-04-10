@@ -82,40 +82,43 @@ export default function DoctorsPage() {
 
     // DoctorsPage.jsx - Sửa hàm handleBooking
     const handleBooking = (doctor) => {
-        // Kiểm tra token hoặc thông tin người dùng
-        const token = localStorage.getItem("accessToken");
-        const user = localStorage.getItem("user");
+    // Kiểm tra cả localStorage và sessionStorage
+    const token =
+        localStorage.getItem("accessToken") ||
+        sessionStorage.getItem("accessToken");
 
-        if (!token || !user) {
-            // Hiển thị thông báo
-            alert("Vui lòng đăng nhập để đặt lịch khám!");
+    const user =
+        localStorage.getItem("user") ||
+        sessionStorage.getItem("user");
 
-            // Chuyển hướng đến trang đăng nhập và lưu lại trang hiện tại
-            navigate("/login", {
-                state: {
-                    from: location.pathname,
-                    doctor,
-                    hospital: selectedHospital
-                }
-            });
-            return;
-        }
+    if (!token || !user) {
+        alert("Vui lòng đăng nhập để đặt lịch khám!");
 
-        // Nếu đã đăng nhập, chuyển sang trang booking
-        navigate("/booking", {
+        navigate("/login", {
             state: {
-                doctor: {
-                    id: doctor.id,
-                    name: doctor.name,
-                    phone: doctor.phone,
-                    email: doctor.email,
-                    hospital: selectedHospital?.name || doctor.hospitalName,
-                    department: doctor.departmentName,
-                },
+                from: location.pathname,
+                doctor,
                 hospital: selectedHospital
             }
         });
-    };
+        return;
+    }
+
+    // Nếu đã đăng nhập, chuyển sang trang booking
+    navigate("/booking", {
+        state: {
+            doctor: {
+                id: doctor.id,
+                name: doctor.name,
+                phone: doctor.phone,
+                email: doctor.email,
+                hospital: selectedHospital?.name || doctor.hospitalName,
+                department: doctor.departmentName,
+            },
+            hospital: selectedHospital
+        }
+    });
+};
 
     if (loading) {
         return (
