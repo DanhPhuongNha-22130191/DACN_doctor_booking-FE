@@ -11,7 +11,7 @@ import {
   message
 } from "antd";
 
-// const API_URL = "http://localhost:8080/api/hospitals";
+const API_URL = "http://localhost:8080/api/hospitals";
 
 const HospitalAdmin = () => {
   const [hospitals, setHospitals] = useState([]);
@@ -27,18 +27,28 @@ const HospitalAdmin = () => {
   const [form] = Form.useForm();
 
   // ================= FETCH =================
-  const fetchHospitals = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(API_URL, {
-        params: { keyword: search }
-      });
-      setHospitals(res.data);
-    } catch {
-      message.error("Lỗi tải dữ liệu");
-    }
+  const fetchHospitals = async (keyword = "") => {
+  setLoading(true);
+  try {
+    const res = await axios.get(`${API_URL}/search`, {
+      params: { keyword }
+    });
+    setHospitals(res.data);
+  } catch (error) {
+    console.error(error);
+    message.error("Lỗi tải bệnh viện");
+  } finally {
     setLoading(false);
+  }
   };
+
+  useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    fetchHospitals(search);
+  }, 500); // 500ms debounce
+
+  return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   useEffect(() => {
     fetchHospitals();
@@ -50,7 +60,7 @@ const HospitalAdmin = () => {
       const values = await form.validateFields();
 
       if (editingHospital) {
-        await axios.put(`${API_URL}/${editingHospital.id}`, values);
+        await axios.put(`${API_URL}/admin/${editingHospital.id}`, values);
         message.success("Cập nhật thành công");
       } else {
         await axios.post(API_URL, values);
@@ -107,10 +117,6 @@ const HospitalAdmin = () => {
       dataIndex: "email"
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "created_at"
-    },
-    {
       title: "Hành động",
       render: (_, record) => (
         <Space>
@@ -143,11 +149,12 @@ const HospitalAdmin = () => {
       {/* SEARCH */}
       <Space style={{ marginBottom: 16 }}>
         <Input
-          placeholder="Tìm theo tên..."
-          allowClear
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 250 }}
-        />
+  placeholder="Tìm bệnh viện..."
+  allowClear
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  style={{ width: 250 }}
+/>
 
         <Button
           type="primary"
@@ -217,8 +224,6 @@ const HospitalAdmin = () => {
             <p><b>Địa chỉ:</b> {selectedHospital.address}</p>
             <p><b>SĐT:</b> {selectedHospital.phone}</p>
             <p><b>Email:</b> {selectedHospital.email}</p>
-            <p><b>Ngày tạo:</b> {selectedHospital.created_at}</p>
-            <p><b>Cập nhật:</b> {selectedHospital.updated_at}</p>
           </div>
         )}
       </Modal>

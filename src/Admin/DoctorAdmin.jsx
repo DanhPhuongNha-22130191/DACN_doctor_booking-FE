@@ -12,9 +12,9 @@ import {
   message
 } from "antd";
 
-// const API_DOCTOR = "http://localhost:8080/api/doctors";
-// const API_HOSPITAL = "http://localhost:8080/api/hospitals";
-// const API_DEPARTMENT = "http://localhost:8080/api/departments";
+const API_DOCTOR = "http://localhost:8080/api/doctors";
+const API_HOSPITAL = "http://localhost:8080/api/hospitals";
+const API_DEPARTMENT = "http://localhost:8080/api/departments";
 
 const DoctorAdmin = () => {
   const [doctors, setDoctors] = useState([]);
@@ -33,18 +33,28 @@ const DoctorAdmin = () => {
   const [form] = Form.useForm();
 
   // ================= FETCH =================
-  const fetchDoctors = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(API_DOCTOR, {
-        params: { keyword: search }
-      });
-      setDoctors(res.data);
-    } catch {
-      message.error("Lỗi tải bác sĩ");
-    }
+  const fetchDoctors = async (keyword = "") => {
+  setLoading(true);
+  try {
+    const res = await axios.get(`${API_DOCTOR}/search`, {
+      params: { keyword }
+    });
+    setDoctors(res.data);
+  } catch (error) {
+    console.error(error);
+    message.error("Lỗi tải bác sĩ");
+  } finally {
     setLoading(false);
+  }
   };
+
+  useEffect(() => {
+  const delayDebounce = setTimeout(() => {
+    fetchDoctors(search);
+  }, 500); // 500ms debounce
+
+  return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   const fetchHospitals = async () => {
     const res = await axios.get(API_HOSPITAL);
@@ -100,9 +110,16 @@ const DoctorAdmin = () => {
 
   // ================= EDIT =================
   const openEdit = (record) => {
-    setEditingDoctor(record);
-    form.setFieldsValue(record);
-    setOpenForm(true);
+  setEditingDoctor(record);
+  form.setFieldsValue({
+    name: record.name,
+    phone: record.phone,
+    email: record.email,
+    status: record.status,
+    hospitalId: record.hospital?.id,
+    departmentId: record.department?.id,
+  });
+  setOpenForm(true);
   };
 
   // ================= TABLE =================
@@ -168,11 +185,12 @@ const DoctorAdmin = () => {
       {/* SEARCH */}
       <Space style={{ marginBottom: 16 }}>
         <Input
-          placeholder="Tìm bác sĩ..."
-          allowClear
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 250 }}
-        />
+  placeholder="Tìm bác sĩ..."
+  allowClear
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  style={{ width: 250 }}
+/>
 
         <Button
           type="primary"
@@ -219,37 +237,37 @@ const DoctorAdmin = () => {
           </Form.Item>
 
           <Form.Item
-            name="hospital_id"
-            label="Bệnh viện"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn bệnh viện">
-              {hospitals.map((h) => (
-                <Select.Option key={h.id} value={h.id}>
-                  {h.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+          name="hospitalId"
+          label="Bệnh viện"
+          rules={[{ required: true }]}
+        >
+          <Select placeholder="Chọn bệnh viện">
+            {hospitals.map((h) => (
+              <Select.Option key={h.id} value={h.id}>
+                {h.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
-          <Form.Item
-            name="department_id"
-            label="Khoa"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn khoa">
-              {departments.map((d) => (
-                <Select.Option key={d.id} value={d.id}>
-                  {d.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+        <Form.Item
+          name="departmentId"
+          label="Khoa"
+          rules={[{ required: true }]}
+        >
+          <Select placeholder="Chọn khoa">
+            {departments.map((d) => (
+              <Select.Option key={d.id} value={d.id}>
+                {d.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
           <Form.Item name="status" label="Trạng thái">
             <Select>
-              <Select.Option value="active">Active</Select.Option>
-              <Select.Option value="inactive">Inactive</Select.Option>
+              <Select.Option value="active">Đang hoạt động</Select.Option>
+              <Select.Option value="inactive">Không hoạt động</Select.Option>
             </Select>
           </Form.Item>
         </Form>
