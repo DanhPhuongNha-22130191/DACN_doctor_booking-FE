@@ -103,7 +103,7 @@ const LoginPage = ({ onLogin, goRegister }) => {
         <div className="login-image">
           <div className="overlay">
             <div className="brand">
-              <h1>MediCare</h1>
+              <h1>NLMedi</h1>
               <p>Đặt lịch khám thông minh</p>
             </div>
 
