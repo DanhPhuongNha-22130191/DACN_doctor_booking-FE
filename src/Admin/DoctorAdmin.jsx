@@ -112,7 +112,10 @@ const DoctorAdmin = () => {
   const openEdit = (record) => {
   setEditingDoctor(record);
   form.setFieldsValue({
-    ...record,
+    name: record.name,
+    phone: record.phone,
+    email: record.email,
+    status: record.status,
     hospitalId: record.hospital?.id,
     departmentId: record.department?.id,
   });
@@ -234,32 +237,32 @@ const DoctorAdmin = () => {
           </Form.Item>
 
           <Form.Item
-            name="hospital_id"
-            label="Bệnh viện"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn bệnh viện">
-              {hospitals.map((h) => (
-                <Select.Option key={h.id} value={h.id}>
-                  {h.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+          name="hospitalId"
+          label="Bệnh viện"
+          rules={[{ required: true }]}
+        >
+          <Select placeholder="Chọn bệnh viện">
+            {hospitals.map((h) => (
+              <Select.Option key={h.id} value={h.id}>
+                {h.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
-          <Form.Item
-            name="department_id"
-            label="Khoa"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn khoa">
-              {departments.map((d) => (
-                <Select.Option key={d.id} value={d.id}>
-                  {d.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+        <Form.Item
+          name="departmentId"
+          label="Khoa"
+          rules={[{ required: true }]}
+        >
+          <Select placeholder="Chọn khoa">
+            {departments.map((d) => (
+              <Select.Option key={d.id} value={d.id}>
+                {d.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
           <Form.Item name="status" label="Trạng thái">
             <Select>
