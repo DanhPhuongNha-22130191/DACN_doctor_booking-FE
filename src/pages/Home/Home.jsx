@@ -1,11 +1,21 @@
-import React from 'react'
+import { Layout } from "antd";
+import AppHeader from "../../components/Header";
+import Hero  from "../../components/Hero";
+import Card  from "../../components/Card";
+import HospitalList from "../../components/HospitalList";
+const { Content } = Layout;
 
 const Home = () => {
   return (
-    <div>
-      <h2>Trang Chủ</h2>
-    </div>
-  )
-}
+    <Layout>
+      <AppHeader />
+      <Content>
+        <Hero />
+        <Card />
+        <HospitalList />
+      </Content>
+    </Layout>
+  );
+};
 
-export default Home
+export default Home;
