@@ -65,17 +65,8 @@ const LoginPage = ({ onLogin, goRegister }) => {
     };
 
     // 🔹 Lưu thông tin user và token
-    if (rememberMe) {
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (data.token) {
-        localStorage.setItem("accessToken", data.token);
-      }
-    } else {
-      sessionStorage.setItem("user", JSON.stringify(userData));
-      if (data.token) {
-        sessionStorage.setItem("accessToken", data.token);
-      }
-    }
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("accessToken", data.token);
 
     // 🔹 Gọi callback onLogin nếu có
     if (onLogin) {
